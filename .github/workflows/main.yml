@@ -45,7 +45,7 @@ jobs:
         echo "=== Root files ==="
         ls -la
         echo "=== App structure ==="
-        find app -type f
+        find app -type f 2>/dev/null || echo "No app files yet"
 
     - name: Create settings.gradle
       run: |
@@ -78,7 +78,6 @@ jobs:
 
     - name: Create app/build.gradle
       run: |
-        mkdir -p app
         cat > app/build.gradle << 'EOF'
         plugins {
             id 'com.android.application'
@@ -122,7 +121,6 @@ jobs:
 
     - name: Create gradle-wrapper.properties
       run: |
-        mkdir -p gradle/wrapper
         cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
         distributionBase=GRADLE_USER_HOME
         distributionPath=wrapper/dists

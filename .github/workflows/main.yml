@@ -1,0 +1,55 @@
+name: Build GestureShield APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Create project structure
+      run: |
+        mkdir -p app/src/main/java/com/gestureshield
+        mkdir -p app/src/main/res/layout
+        mkdir -p app/src/main/res/values
+        mkdir -p app/src/main/res/xml
+        mkdir -p app/src/main/assets
+        mkdir -p gradle/wrapper
+
+        mv AndroidManifest.xml app/src/main/
+        mv GestureService.kt app/src/main/java/com/gestureshield/
+        mv MainActivity.kt app/src/main/java/com/gestureshield/
+        mv activity_main.xml app/src/main/res/layout/
+        mv overlay_indicator.xml app/src/main/res/layout/
+        mv strings.xml app/src/main/res/values/
+        mv themes.xml app/src/main/res/values/
+        mv accessibility_service_config.xml app/src/main/res/xml/
+        mv gradle-wrapper.properties gradle/wrapper/
+
+    - name: Download MediaPipe model
+      run: |
+        wget -O app/src/main/assets/hand_landmarker.task \
+          "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
+
+    - name: Make gradlew executable
+      run: chmod +x gradlew
+
+    - name: Build APK
+      run: ./gradlew assembleDebug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: GestureShield-APK
+        path: app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30

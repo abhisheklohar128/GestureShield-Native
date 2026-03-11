@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="100dp"
+    android:layout_height="100dp"
+    android:background="#CC000000"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/tvGestureEmoji"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="👁️"
+        android:textSize="36sp"
+        android:gravity="center"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="GS"
+        android:textColor="#00FF88"
+        android:textSize="10sp"
+        android:textStyle="bold"/>
+</LinearLayout>

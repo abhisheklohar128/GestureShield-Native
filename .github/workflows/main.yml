@@ -17,32 +17,20 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
     - name: Setup project structure
       run: |
-        cat > settings.gradle << 'EOF'
-        rootProject.name = "GestureShield"
-        include ':app'
-        EOF
-
-        cat > build.gradle << 'EOF'
-        buildscript {
-            ext.kotlin_version = '1.9.0'
-            repositories { google(); mavenCentral() }
-            dependencies {
-                classpath 'com.android.tools.build:gradle:8.1.0'
-                classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-            }
-        }
-        allprojects { repositories { google(); mavenCentral() } }
-        EOF
-
+        # Directories बनवा
         mkdir -p app/src/main/java/com/gestureshield
         mkdir -p app/src/main/res/layout
         mkdir -p app/src/main/res/values
         mkdir -p app/src/main/res/xml
         mkdir -p app/src/main/assets
         mkdir -p gradle/wrapper
-
+        
+        # Files move करा (जर अस्तित्वात असतील तर)
         [ -f AndroidManifest.xml ] && mv AndroidManifest.xml app/src/main/
         [ -f GestureService.kt ] && mv GestureService.kt app/src/main/java/com/gestureshield/
         [ -f MainActivity.kt ] && mv MainActivity.kt app/src/main/java/com/gestureshield/
@@ -52,7 +40,45 @@ jobs:
         [ -f themes.xml ] && mv themes.xml app/src/main/res/values/
         [ -f accessibility_service_config.xml ] && mv accessibility_service_config.xml app/src/main/res/xml/
         [ -f gradle-wrapper.properties ] && mv gradle-wrapper.properties gradle/wrapper/
+        
+        # Files list बघा
+        echo "=== Root files ==="
+        ls -la
+        echo "=== App structure ==="
+        find app -type f
 
+    - name: Create settings.gradle
+      run: |
+        cat > settings.gradle << 'EOF'
+        rootProject.name = "GestureShield"
+        include ':app'
+        EOF
+
+    - name: Create root build.gradle
+      run: |
+        cat > build.gradle << 'EOF'
+        buildscript {
+            ext.kotlin_version = '1.9.0'
+            repositories { 
+                google() 
+                mavenCentral() 
+            }
+            dependencies {
+                classpath 'com.android.tools.build:gradle:8.1.0'
+                classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+            }
+        }
+        allprojects { 
+            repositories { 
+                google() 
+                mavenCentral() 
+            } 
+        }
+        EOF
+
+    - name: Create app/build.gradle
+      run: |
+        mkdir -p app
         cat > app/build.gradle << 'EOF'
         plugins {
             id 'com.android.application'
@@ -69,13 +95,17 @@ jobs:
                 versionName "1.0"
             }
             buildTypes {
-                release { minifyEnabled false }
+                release { 
+                    minifyEnabled false 
+                }
             }
             compileOptions {
                 sourceCompatibility JavaVersion.VERSION_1_8
                 targetCompatibility JavaVersion.VERSION_1_8
             }
-            kotlinOptions { jvmTarget = '1.8' }
+            kotlinOptions { 
+                jvmTarget = '1.8' 
+            }
         }
         dependencies {
             implementation 'androidx.core:core-ktx:1.12.0'
@@ -90,15 +120,28 @@ jobs:
         }
         EOF
 
-        chmod +x gradlew
+    - name: Create gradle-wrapper.properties
+      run: |
+        mkdir -p gradle/wrapper
+        cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
+        distributionBase=GRADLE_USER_HOME
+        distributionPath=wrapper/dists
+        distributionUrl=https\://services.gradle.org/distributions/gradle-8.0-bin.zip
+        zipStoreBase=GRADLE_USER_HOME
+        zipStorePath=wrapper/dists
+        EOF
 
     - name: Download MediaPipe model
       run: |
+        mkdir -p app/src/main/assets
         wget -q -O app/src/main/assets/hand_landmarker.task \
           "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
 
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+
     - name: Build APK
-      run: ./gradlew assembleDebug --stacktrace
+      run: gradle assembleDebug --stacktrace
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
